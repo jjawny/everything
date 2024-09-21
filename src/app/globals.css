@@ -32,3 +32,14 @@ body {
     text-wrap: balance;
   }
 }
+
+/* CUSTOM STYLES */
+/* Styles that React does not support (e.g., pseudo styles) */
+/* Styles that Tailwind does not support */
+.button-73 {
+  box-shadow: #adcfff 0 -12px 6px inset;
+}
+
+.button-73:hover {
+  box-shadow: #ff6314 0 -6px 8px inset;
+}
