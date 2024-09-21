@@ -1,32 +1,32 @@
 "use client";
-import { getDefaultTheBigForm, TheBigForm, TheBigFormSchema } from "@/models/TheBigForm";
+import { getDefaultShortFormModel, ShortFormModel, ShortFormModelSchema } from "@/models/ShortFormModel";
 import ClearIcon from "@mui/icons-material/Clear";
 import DoneIcon from "@mui/icons-material/Done";
 import { Badge, Box, Button, FormHelperText, LinearProgress } from "@mui/material";
 import { Form, Formik, useFormikContext } from "formik";
-import debounce from "lodash/debounce";
+import _ from "lodash";
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import * as Yup from "yup";
-import FastFormSwitch from "./FastFormSwitch";
+import CustomSwitch from "./CustomSwitch";
 import PureFormikInput from "./PureFormikInput";
 
-const Short = () => {
-  const [isFastForm, setIsFastForm] = useState<boolean>(false);
-  const [isSaving, setIsSaving] = useState<boolean>(false); // extracted to control reset button separately
+const ShortForm = () => {
+  const [isFastForm, setIsFastForm] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false); // extracted to control reset button separately (keep alive after submit)
   const [isShowEmailValidationProgressBar, setIsShowEmailValidationProgressBar] = useState<boolean>(false); // extracted as Formik 'isValidating' bool not working
 
   return (
     <div>
       <Formik
-        initialValues={getDefaultTheBigForm()}
+        initialValues={getDefaultShortFormModel()}
         {...(isFastForm && { validateOnBlur: false, validateOnChange: false, validateOnMount: false })}
-        validationSchema={TheBigFormSchema}
+        validationSchema={ShortFormModelSchema}
         onSubmit={(values, { setSubmitting }) => {
           const updateLocationPromise = new Promise<void>(async (resolve, reject) => {
             try {
               setIsSaving(true);
-              await TheBigFormSchema.validate(values); // final line of defense
+              await ShortFormModelSchema.validate(values); // final line of defense
               setTimeout(() => resolve(), 1000);
             } catch (err) {
               const rejectionErr =
@@ -65,54 +65,52 @@ const Short = () => {
 
           return (
             <Form style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-              {isFastForm && <FormDebouncedValidationEffect />}
+              {isFastForm && <FormikValidationDebouncedEffect />}
               <p className="text-stone-400">a very...</p>
               <Badge badgeContent={errorsCount} color="error">
-                <Box display="flex" flexWrap="nowrap" gap={2} width={225} justifyContent="space-between">
-                  <h1 className="font-sedgwick text-stone-800 text-5xl text-start">{isFastForm ? "FAST" : "SLOW"}</h1>
-                  <h1 className="font-sedgwick text-stone-800 text-5xl text-end">FORM</h1>
+                <Box display="flex" flexWrap="nowrap" gap={2} width={"100%"} justifyContent="flex-end">
+                  <h1 className="font-sedgwick text-stone-800 text-8xl text-start">{isFastForm ? "FAST" : "SLOW"}</h1>
+                  <h1 className="font-sedgwick text-stone-800 text-8xl text-end">FORM</h1>
                 </Box>
               </Badge>
               <Box position="relative">
-                <PureFormikInput<TheBigForm> name="focusedField" isDisabled={isSubmitting} size="medium" />
+                <PureFormikInput<ShortFormModel> name="focusedField" isDisabled={isSubmitting} size="medium" />
                 {isShowEmailValidationProgressBar && !errors.focusedField && (
                   <LinearProgress style={{ marginBottom: "18.5px" }} />
                 )}
                 {!isShowEmailValidationProgressBar && isAvailable && !isSubmitting && (
                   <FormHelperText style={{ color: "green" }}>Email available</FormHelperText>
                 )}
-                <img
-                  src="/images/arrow.svg"
-                  alt="handrawn arrow pointing to textfield"
-                  style={{
-                    position: "absolute",
-                    width: 40,
-                    top: -30,
-                    right: -30,
-                    transform: "scaleX(-1) scaleY(.7) rotate(135deg)",
-                  }}
-                />
+                <HandDrawnArrow />
               </Box>
-              <PureFormikInput<TheBigForm> name="field1" isDisabled={isSubmitting} />
-              <PureFormikInput<TheBigForm> name="field2" isDisabled={isSubmitting} />
-              <PureFormikInput<TheBigForm> name="field3" isDisabled={isSubmitting} />
-              <PureFormikInput<TheBigForm> name="field4" isDisabled={isSubmitting} />
-              <PureFormikInput<TheBigForm> name="field5" isDisabled={isSubmitting} />
-              <PureFormikInput<TheBigForm> name="field6" isDisabled={isSubmitting} />
-              <PureFormikInput<TheBigForm> name="field7" isDisabled={isSubmitting} />
-              <PureFormikInput<TheBigForm> name="field8" isDisabled={isSubmitting} />
-              <PureFormikInput<TheBigForm> name="field9" isDisabled={isSubmitting} />
-              <PureFormikInput<TheBigForm> name="field10" isDisabled={isSubmitting} />
-              <PureFormikInput<TheBigForm> name="field11" isDisabled={isSubmitting} />
-              <PureFormikInput<TheBigForm> name="field12" isDisabled={isSubmitting} />
               <FormControls isResetDisabled={isSaving} isSubmitDisabled={isSubmitting || !isValid} />
-              <FastFormSwitch onToggleCallback={setIsFastForm} />
+              <CustomSwitch isOn={isFastForm} handleToggle={setIsFastForm} tooltipLabel="Fix me..." />
             </Form>
           );
         }}
       </Formik>
     </div>
   );
+};
+
+const FormikValidationDebouncedEffect: React.FC = () => {
+  const formik = useFormikContext();
+  const debouncedValidate = useMemo(() => _.debounce(formik.validateForm, 800), [formik.validateForm]);
+
+  useEffect(
+    function validate() {
+      if (formik.dirty) {
+        debouncedValidate(formik.values);
+      }
+
+      return () => {
+        debouncedValidate.cancel();
+      };
+    },
+    [formik.values, debouncedValidate]
+  );
+
+  return null;
 };
 
 type FormControlsProps = {
@@ -142,18 +140,20 @@ const FormControls: React.FC<FormControlsProps> = (props) => {
   );
 };
 
-const FormDebouncedValidationEffect: React.FC = () => {
-  const formik = useFormikContext();
-  const debouncedValidate = useMemo(() => debounce(formik.validateForm, 800), [formik.validateForm]);
-
-  useEffect(() => {
-    debouncedValidate(formik.values);
-    return () => {
-      debouncedValidate.cancel();
-    };
-  }, [formik.values, debouncedValidate]);
-
-  return null;
+const HandDrawnArrow: React.FC = () => {
+  return (
+    <img
+      src="/images/arrow.svg"
+      alt="handrawn arrow pointing to textfield"
+      style={{
+        position: "absolute",
+        width: 40,
+        top: -30,
+        right: -30,
+        transform: "scaleX(-1) scaleY(.7) rotate(135deg)",
+      }}
+    />
+  );
 };
 
-export default Short;
+export default ShortForm;
