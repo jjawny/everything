@@ -40,7 +40,7 @@ const PureFormikInput = <T,>({
         }),
       },
     }),
-    [isDisabled, isValueChanged]
+    [size, isDisabled, isValueChanged]
   );
 
   return (
