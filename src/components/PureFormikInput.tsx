@@ -11,6 +11,7 @@ interface IPureFormikInputProps<T> {
   size?: "small" | "medium";
 }
 
+// A Formik textfield wrapper w feature-rich additions
 const PureFormikInput = <T,>({
   name,
   label,
