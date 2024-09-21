@@ -3,27 +3,27 @@ import { Box, styled, Tooltip, TooltipProps } from "@mui/material";
 import Switch from "@mui/material/Switch";
 import { tooltipClasses } from "@mui/material/Tooltip";
 
-type FastFormSwitchProps = {
-  onToggleCallback: (isOn: boolean) => void;
+type CustomSwitchProps = {
+  isOn?: boolean;
+  handleToggle: (isOn: boolean) => void;
+  tooltipLabel?: string;
 };
 
-const FastFormSwitch: React.FC<FastFormSwitchProps> = (props) => {
-  const { onToggleCallback } = props;
+const CustomSwitch: React.FC<CustomSwitchProps> = (props) => {
+  const { isOn = false, handleToggle, tooltipLabel = "Toggle me!" } = props;
 
   return (
-    <Box display="flex" gap={2} alignItems="center" justifyContent="end">
-      {/* <Typography>use fast form...</Typography> */}
-      <LightTooltip title="Fix me... PLEASE" arrow placement="left" open>
+    <Box display="flex" gap={2} alignItems="center" justifyContent="center">
+      <LightTooltip title={tooltipLabel} arrow placement="left">
         <Box>
           <Switch
             size="medium"
             checkedIcon={<BoltIcon />}
             icon={<BoltIcon />}
-            onChange={(e) => onToggleCallback(e.target.checked)}
+            checked={isOn}
+            onChange={(e) => handleToggle(e.target.checked)}
             inputProps={{ "aria-label": "use fast form" }}
-            sx={{
-              height: 41, // Adjust the height value as needed
-            }}
+            sx={{ height: 41 }}
           />
         </Box>
       </LightTooltip>
@@ -48,4 +48,4 @@ const LightTooltip = styled(({ className, ...props }: TooltipProps) => (
   },
 }));
 
-export default FastFormSwitch;
+export default CustomSwitch;
