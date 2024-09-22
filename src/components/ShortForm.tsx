@@ -19,14 +19,20 @@ const ShortForm = () => {
   const [isFastForm, setIsFastForm] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false); // extracted to control reset button separately (keep alive after submit)
 
-  const handleSubmit = async (values: ShortFormModel, formikSetSubmitting: (isSubmitting: boolean) => void) => {
+  // Known Gotcha: If the handleSubmit is 'async' in the signature, Formik 'isSubmitting' is no longer accurate...
+  // Solution: Remove 'async' from signature
+  // See: https://github.com/jaredpalmer/formik/issues/2442#issuecomment-619404491
+  const handleSubmit = (values: ShortFormModel, formikSetSubmitting: (isSubmitting: boolean) => void) => {
     const saveFormPromise = new Promise<void>(async (resolve, reject) => {
       try {
         setIsSaving(true);
         await ShortFormModelSchema.validate(values); // final line of defense
-        setTimeout(() => resolve(), 1000); // mock network call
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // mock network call
+        resolve();
       } catch (err) {
+        console.warn("Failed to submit form", err);
         const rejectionErr = err instanceof Yup.ValidationError ? new Error("Please fix errors before saving") : err;
+        formikSetSubmitting(false);
         reject(rejectionErr);
       } finally {
         setIsSaving(false);
@@ -36,10 +42,7 @@ const ShortForm = () => {
     toast.promise(saveFormPromise, {
       loading: "Saving...",
       success: "Saved!",
-      error: () => {
-        formikSetSubmitting(false);
-        return <b>Failed to save</b>;
-      },
+      error: (err: Error) => err.message,
     });
   };
 
@@ -58,7 +61,7 @@ const ShortForm = () => {
             <EmailField />
             <FormControlPanel
               isResetDisabled={isSaving}
-              isSubmitDisabled={isSubmitting || !isValid}
+              isSubmitDisabled={isSubmitting || isSaving || !isValid}
               isFastForm={isFastForm}
               toggleIsFastForm={setIsFastForm}
             />
