@@ -4,7 +4,7 @@ type Button73Props = {
 };
 
 const Button73: React.FC<Button73Props> = (props) => {
-  const { handleClickCallback, isActive = false } = props;
+  const { isActive = false } = props;
 
   return (
     <button
