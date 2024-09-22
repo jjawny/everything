@@ -6,41 +6,36 @@ interface IPureFormikInputProps<T> {
   name: keyof T;
   label?: string;
   value?: string;
-  manualErrorText?: string;
+  otherErrors?: string;
   isDisabled?: boolean;
-  size?: "small" | "medium";
+  isShowHelperText?: boolean;
 }
 
 // A Formik textfield wrapper w feature-rich additions
 const PureFormikInput = <T,>({
   name,
   label,
-  value = "",
-  manualErrorText,
+  value,
+  otherErrors,
   isDisabled = false,
-  size = "small",
+  isShowHelperText = true,
   ...props
 }: IPureFormikInputProps<T>) => {
   const nameString = String(name);
   const [field, meta] = useField(nameString);
   const { initialValues } = useFormikContext<T>();
-  const helperText = manualErrorText ?? (meta.error ? meta.error : size === "small" ? undefined : undefined);
-  const isError = manualErrorText !== undefined || meta.error !== undefined;
-  const isValueChanged = field.value !== initialValues[name];
+
+  const helperText = useMemo(() => otherErrors ?? meta.error, [otherErrors, meta.error]);
+  const isError = useMemo(() => otherErrors !== undefined || meta.error !== undefined, [otherErrors, meta.error]);
+  const isValueChanged = useMemo(() => field.value !== initialValues[name], [field.value, initialValues, name]);
   const overridenStyles = useMemo(
     () => ({
       "& .MuiInput-root": {
         color: isDisabled ? "grey" : "rgb(41 37 36)",
         ...(!isDisabled && isValueChanged && { backgroundColor: "#fff6e2" }),
-        ...(size === "small" && {
-          height: 10,
-          color: "rgb(168 162 158)",
-          fontSize: 8,
-          "& .MuiInputBase-input": { padding: 0, height: "100%" },
-        }),
       },
     }),
-    [size, isDisabled, isValueChanged]
+    [isDisabled, isValueChanged]
   );
 
   return (
@@ -50,10 +45,9 @@ const PureFormikInput = <T,>({
         <TextField
           {...field}
           {...props}
-          size={size}
-          value={value ? value : field.value ?? ""}
+          value={value ?? field.value ?? ""}
           sx={overridenStyles}
-          helperText={helperText}
+          {...(isShowHelperText && { helperText: helperText })}
           disabled={isDisabled}
           name={nameString}
           error={isError}
