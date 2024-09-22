@@ -3,7 +3,7 @@ import * as Yup from "yup";
 export type ShortFormModel = Yup.InferType<typeof ShortFormModelSchema>;
 export const getDefaultShortFormModel = (): ShortFormModel => ShortFormModelSchema.cast({});
 export const ShortFormModelSchema = Yup.object().shape({
-  focusedField: Yup.string()
+  email: Yup.string()
     .required("Required field")
     .email("Must be a valid email")
     .default("Subcribe or else 🔫")
