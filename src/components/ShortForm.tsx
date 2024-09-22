@@ -3,6 +3,7 @@ import useMockValidationProgressBarHook from "@/hooks/useMockValidationProgressB
 import { getDefaultShortFormModel, ShortFormModel, ShortFormModelSchema } from "@/models/ShortFormModel";
 import ClearIcon from "@mui/icons-material/Clear";
 import DoneIcon from "@mui/icons-material/Done";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Badge, Box, Button, FormHelperText, LinearProgress } from "@mui/material";
 import { Form, Formik, useFormikContext } from "formik";
 import _ from "lodash";
@@ -10,6 +11,7 @@ import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import * as Yup from "yup";
+import Button73 from "./Button73";
 import CustomSwitch from "./CustomSwitch";
 import PureFormikInput from "./PureFormikInput";
 
@@ -98,7 +100,7 @@ const FormTitle: React.FC<FormTitleProps> = (props) => {
 
   return (
     <>
-      <p className="text-stone-400">a very...</p>
+      <p className="font-sedgwick text-stone-400 max-w-max transform rotate-[-20deg]">a very...</p>
       <Badge badgeContent={errorsCount} color="error">
         <Box display="flex" flexWrap="nowrap" gap={2} width={"100%"} justifyContent="flex-end">
           <h1 className="font-sedgwick text-stone-800 text-8xl text-start">{isFastForm ? "FAST" : "SLOW"}</h1>
@@ -140,13 +142,15 @@ type FormControlPanelProps = {
 
 const FormControlPanel: React.FC<FormControlPanelProps> = (props) => {
   const { isSubmitDisabled = false, isResetDisabled = false, isFastForm, toggleIsFastForm } = props;
+
   return (
     <Box display={"flex"} flexDirection={"column"}>
+      <UploadFileButton />
       <Box display="flex" justifyContent="space-between" paddingTop={1} gap={1}>
         <Button
           variant="outlined"
-          size="small"
           fullWidth
+          size="small"
           type="reset"
           disabled={isResetDisabled}
           endIcon={<ClearIcon />}
@@ -165,8 +169,97 @@ const FormControlPanel: React.FC<FormControlPanelProps> = (props) => {
           Submit
         </Button>
       </Box>
-      <CustomSwitch isOn={isFastForm} handleToggle={toggleIsFastForm} tooltipLabel="Use the fast form..." />
+      <Box display={"flex"} flexWrap={"wrap"} gap={2} alignItems={"center"}>
+        <CustomSwitch isOn={isFastForm} handleToggle={toggleIsFastForm} tooltipLabel="Use the fast form..." />
+        <a href="/files/mockShortFormModelFileToUpload.json" download="GOOD test file.json">
+          <Button73 text="⬇️ GOOD test file" handleClick={() => {}} />
+        </a>
+        <a href="/files/mockCorruptFileToUpload.json" download="BAD test file.json">
+          <Button73 text="⬇️ BAD test file" handleClick={() => {}} />
+        </a>
+      </Box>
     </Box>
+  );
+};
+
+const UploadFileButton: React.FC = () => {
+  const { setValues } = useFormikContext();
+  const [isHoveringFile, setIsHoveringFile] = useState<boolean>(false);
+
+  const preventBrowserDefaultBehaviour = (e: React.MouseEvent | React.KeyboardEvent | React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const loadFileContent = (file: File | undefined) => {
+    if (!file) return;
+
+    const parsingFilePromise = new Promise((resolve, reject) => {
+      const reader = new FileReader(); // Don't worry, GC will clean this up...
+      reader.onload = async (e) => {
+        try {
+          const rawContent = e.target?.result as string;
+          const jsonContent = JSON.parse(rawContent);
+          const newValues = await ShortFormModelSchema.cast(jsonContent);
+          setValues(newValues);
+          resolve(newValues);
+        } catch (err) {
+          console.warn("Unable to parse uploaded file", err);
+          reject(new Error("Unable to load your file"));
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    toast.promise(
+      parsingFilePromise,
+      {
+        loading: "Loading file...",
+        success: "Pre-filled with your file!",
+        error: (e: Error) => e.message,
+      },
+      { error: { icon: "⚠️" } } // most times the user's file is the problem, don't imply (red) error
+    );
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    loadFileContent(file);
+    event.target.value = ""; // allow re-upload w same file name
+  };
+
+  const handleOnDrag = (event: React.DragEvent<HTMLDivElement>) => {
+    preventBrowserDefaultBehaviour(event);
+    const file = event.dataTransfer.files?.[0];
+    loadFileContent(file);
+    setIsHoveringFile(false);
+  };
+
+  const handleOnDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    preventBrowserDefaultBehaviour(event);
+  };
+
+  return (
+    <div
+      onDrop={handleOnDrag}
+      onDragOver={handleOnDragOver}
+      onDragEnter={() => setIsHoveringFile(true)}
+      onDragLeave={() => setIsHoveringFile(false)}
+      className={isHoveringFile ? "duration-150 ease-in-out scale-105" : ""}
+    >
+      <Button
+        startIcon={<UploadFileIcon />}
+        variant="outlined"
+        component="label"
+        size="small"
+        color="info"
+        fullWidth
+        style={{ padding: 10 }}
+      >
+        Pre-fill with your JSON file
+        <input type="file" accept=".json" hidden onChange={handleFileUpload} />
+      </Button>
+    </div>
   );
 };
 
