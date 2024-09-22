@@ -4,13 +4,16 @@ export type ShortFormModel = Yup.InferType<typeof ShortFormModelSchema>;
 export const getDefaultShortFormModel = (): ShortFormModel => ShortFormModelSchema.cast({});
 export const ShortFormModelSchema = Yup.object().shape({
   email: Yup.string()
-    .required("Required field")
+    .required("Required")
+    .min(2, "Must be more than 2 characters")
+    .max(20, "Must be less than 20 characters")
     .email("Must be a valid email")
-    .default("Subcribe or else 🔫")
     .test("expensive-validation", "Email already registered", async (value) => {
       const isValid = await mockExpensiveEmailValidationCheck(value);
       return isValid;
-    }),
+    })
+    .default("Subcribe or else 🔫"),
+  isCopingAndSeething: Yup.bool().optional().default(false),
 });
 
 const mockExpensiveEmailValidationCheck = (email: string): boolean => {
