@@ -1,51 +1,34 @@
 import BoltIcon from "@mui/icons-material/Bolt";
-import { Box, styled, Tooltip, TooltipProps } from "@mui/material";
+import { Box } from "@mui/material";
 import Switch from "@mui/material/Switch";
-import { tooltipClasses } from "@mui/material/Tooltip";
+import CustomTooltip from "./CustomTooltip";
 
 type CustomSwitchProps = {
-  isOn?: boolean;
+  isOn: boolean;
   handleToggle: (isOn: boolean) => void;
   tooltipLabel?: string;
 };
 
 const CustomSwitch: React.FC<CustomSwitchProps> = (props) => {
-  const { isOn = false, handleToggle, tooltipLabel = "Toggle me!" } = props;
+  const { isOn, handleToggle, tooltipLabel = "Toggle me!" } = props;
 
   return (
     <Box display="flex" gap={2} alignItems="center" justifyContent="center">
-      <LightTooltip title={tooltipLabel} arrow placement="left">
+      <CustomTooltip title={tooltipLabel} arrow placement="left">
         <Box>
           <Switch
             size="medium"
-            checkedIcon={<BoltIcon />}
             icon={<BoltIcon />}
+            checkedIcon={<BoltIcon />}
             checked={isOn}
             onChange={(e) => handleToggle(e.target.checked)}
-            inputProps={{ "aria-label": "use fast form" }}
+            inputProps={{ "aria-label": tooltipLabel }}
             sx={{ height: 41 }}
           />
         </Box>
-      </LightTooltip>
+      </CustomTooltip>
     </Box>
   );
 };
-
-const LightTooltip = styled(({ className, ...props }: TooltipProps) => (
-  <Tooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
-  [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: theme.palette.common.white,
-    color: "rgb(168 162 158)",
-    boxShadow: theme.shadows[1],
-    fontSize: 11,
-  },
-  [`& .${tooltipClasses.arrow}`]: {
-    color: theme.palette.common.white,
-    "&:before": {
-      border: "1px solid #e0e0e0",
-    },
-  },
-}));
 
 export default CustomSwitch;
