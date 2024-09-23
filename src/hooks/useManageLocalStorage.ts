@@ -7,17 +7,18 @@ const useManageLocalStorage = <T>(key: string, fallbackInitialData: T) => {
 
   const clearData = () => localStorage.removeItem(key);
   const saveData = (form: ShortFormModel) => localStorage.setItem(key, JSON.stringify(form));
+  const updateInitialData = (data: T) => setInitialData(data);
 
   useEffect(
     function loadInitialForm() {
       try {
         const preSavedData = localStorage.getItem(key);
         if (preSavedData) {
-          console.log(`Loaded pre-saved form data from LocalStorage:`, preSavedData);
+          console.log(`Loaded data from LocalStorage:`, preSavedData);
           setInitialData(JSON.parse(preSavedData));
         }
       } catch (err) {
-        console.warn(`Error loading pre-saved form data from LocalStorage:`, err);
+        console.warn(`Error loading data from LocalStorage:`, err);
         clearData();
       } finally {
         setIsLoadingInitialData(false);
@@ -26,7 +27,7 @@ const useManageLocalStorage = <T>(key: string, fallbackInitialData: T) => {
     [key]
   );
 
-  return { initialData, isLoadingInitialData, clearData, saveData };
+  return { initialData, isLoadingInitialData, clearData, saveData, updateInitialData };
 };
 
 export default useManageLocalStorage;
