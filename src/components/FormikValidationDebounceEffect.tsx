@@ -33,7 +33,7 @@ const FormikValidationDebouncedEffect = <T,>(props: FormikValidationDebouncedEff
         );
         toggleIsAutoSavingProgress(false);
       }, 1600),
-    [values]
+    [values, saveFormProgress, toggleIsAutoSavingProgress]
   );
 
   useEffect(() => {
@@ -54,7 +54,7 @@ const FormikValidationDebouncedEffect = <T,>(props: FormikValidationDebouncedEff
       debouncedAutoSave.cancel();
       toggleIsAutoSavingProgress(false);
     };
-  }, [dirty, isSubmitting, values, debouncedValidate, debouncedAutoSave]);
+  }, [dirty, isSubmitting, values, debouncedValidate, debouncedAutoSave, toggleIsAutoSavingProgress]);
 
   return null;
 };
