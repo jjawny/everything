@@ -21,5 +21,6 @@ const mockExpensiveEmailValidationCheck = (email: string): boolean => {
   while (Date.now() - start < 200) {
     // Simulate blocking task
   }
-  return email === "mighty@beanz";
+  const isAvailable = email.includes("beanz");
+  return isAvailable;
 };
