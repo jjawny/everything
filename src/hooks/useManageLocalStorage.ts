@@ -1,13 +1,20 @@
-import { ShortFormModel } from "@/models/ShortFormModel";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-const useManageLocalStorage = <T>(key: string, fallbackInitialData: T) => {
-  const [initialData, setInitialData] = useState<T>(fallbackInitialData);
-  const [isLoadingInitialData, setIsLoadingInitialData] = useState<boolean>(true);
+const useManageLocalStorage = <T>(key: string) => {
+  const [data, setData] = useState<T | undefined>();
+  const [isLoadingDataForFirstTime, setIsLoadingDataForFirstTime] = useState<boolean>(true);
 
-  const clearData = () => localStorage.removeItem(key);
-  const saveData = (form: ShortFormModel) => localStorage.setItem(key, JSON.stringify(form));
-  const updateInitialData = (data: T) => setInitialData(data);
+  const clearData = useCallback(() => {
+    localStorage.removeItem(key);
+    setData(undefined);
+  }, [key, setData]);
+  const saveData = useCallback(
+    (nextData: T) => {
+      localStorage.setItem(key, JSON.stringify(nextData));
+      setData(nextData);
+    },
+    [key, setData]
+  );
 
   useEffect(
     function loadInitialForm() {
@@ -15,19 +22,19 @@ const useManageLocalStorage = <T>(key: string, fallbackInitialData: T) => {
         const preSavedData = localStorage.getItem(key);
         if (preSavedData) {
           console.log(`Loaded data from LocalStorage:`, preSavedData);
-          setInitialData(JSON.parse(preSavedData));
+          setData(JSON.parse(preSavedData));
         }
       } catch (err) {
         console.warn(`Error loading data from LocalStorage:`, err);
-        clearData();
+        clearData(); // clear corrupt data
       } finally {
-        setIsLoadingInitialData(false);
+        setIsLoadingDataForFirstTime(false);
       }
     },
-    [key]
+    [key, clearData]
   );
 
-  return { initialData, isLoadingInitialData, clearData, saveData, updateInitialData };
+  return { data, isLoadingDataForFirstTime, clearData, saveData };
 };
 
 export default useManageLocalStorage;
