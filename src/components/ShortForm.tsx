@@ -1,70 +1,155 @@
 "use client";
+import useManageLocalStorage from "@/hooks/useManageLocalStorage";
 import useMockValidationProgressBarHook from "@/hooks/useMockValidationProgressBarHook";
 import { getDefaultShortFormModel, ShortFormModel, ShortFormModelSchema } from "@/models/ShortFormModel";
-import ClearIcon from "@mui/icons-material/Clear";
-import DoneIcon from "@mui/icons-material/Done";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
-import { Badge, Box, Button, FormHelperText, LinearProgress } from "@mui/material";
-import { Form, Formik, useFormikContext } from "formik";
-import _ from "lodash";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import SyncIcon from "@mui/icons-material/Sync";
+import { Badge, Box, FormHelperText, LinearProgress } from "@mui/material";
+import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
 import Image from "next/image";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import toast from "react-hot-toast";
 import * as Yup from "yup";
-import Button73 from "./Button73";
-import CustomSwitch from "./CustomSwitch";
+import FormikDebugPanel from "./FormikDebugPanel";
+import FormikValidationDebouncedEffect from "./FormikValidationDebounceEffect";
 import PureFormikInput from "./PureFormikInput";
+import MemoizedShortFormControlPanel from "./ShortFormControlPanel";
+import ShortFormSkeleton from "./ShortFormSkeleton";
+
+const SHORT_FORM_KEY = "shortFormData";
 
 const ShortForm = () => {
   const [isFastForm, setIsFastForm] = useState<boolean>(true);
+  const [isAutoSavingProgress, setIsAutoSavingProgress] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false); // extracted to control reset button separately (keep alive after submit)
+  const [isForceFailDuringSubmit, setIsForceFailDuringSubmit] = useState<boolean>(false);
+  const [isForceSkeleton, setIsForceSkeleton] = useState<boolean>(false);
+  const initialValues = getDefaultShortFormModel();
+  const {
+    data: autoSavedForm,
+    isLoadingDataForFirstTime,
+    clearData,
+    saveData,
+  } = useManageLocalStorage<ShortFormModel>(SHORT_FORM_KEY);
 
-  // Known Gotcha: If the handleSubmit is 'async' in the signature, Formik 'isSubmitting' is no longer accurate...
-  // Solution: Remove 'async' from signature
+  // TODO: move to tricks tab
+  // const [forceReRenderKey, setForceReRenderKey] = useState<number>(0);
+  // const forceReRender = () => setForceReRenderKey((curr) => (curr === 0 ? 1 : 0));
+
+  // Gotcha: If the handleSubmit is 'async' in the signature, Formik 'isSubmitting' bool is no longer accurate...
+  // Solution: Remove 'async' from signature lol
   // See: https://github.com/jaredpalmer/formik/issues/2442#issuecomment-619404491
-  const handleSubmit = (values: ShortFormModel, formikSetSubmitting: (isSubmitting: boolean) => void) => {
-    const saveFormPromise = new Promise<void>(async (resolve, reject) => {
-      try {
-        setIsSaving(true);
-        await ShortFormModelSchema.validate(values); // final line of defense
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // mock network call
-        resolve();
-      } catch (err) {
-        console.warn("Failed to submit form", err);
-        const rejectionErr = err instanceof Yup.ValidationError ? new Error("Please fix errors before saving") : err;
-        formikSetSubmitting(false);
-        reject(rejectionErr);
-      } finally {
-        setIsSaving(false);
-      }
-    });
+  const handleSubmit = useCallback(
+    (values: ShortFormModel, { setSubmitting, validateForm, setFieldValue }: FormikHelpers<ShortFormModel>) => {
+      const saveFormPromise = new Promise<void>(async (resolve, reject) => {
+        try {
+          setIsSaving(true);
 
-    toast.promise(saveFormPromise, {
-      loading: "Saving...",
-      success: "Saved!",
-      error: (err: Error) => err.message,
-    });
-  };
+          // As we only reach here when form is valid (Formik blocks submit otherwise)
+          // Allow a rapid way to mock a failure here in the user's journey...
+          if (isForceFailDuringSubmit) {
+            flushSync(() => {
+              setFieldValue("email", "BAD E M A I L");
+            });
+          }
+
+          // Final line of defense (don't trust Formik to always prevent submitting a bad form)
+          const errors = await validateForm();
+          if (Object.keys(errors).length > 0) {
+            throw new Error("Please fix errors before saving");
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // mock network call
+          clearData();
+          resolve();
+        } catch (err) {
+          console.warn("Failed to submit form", err);
+          const rejectionErr = err instanceof Yup.ValidationError ? new Error("Please fix errors before saving") : err;
+          setSubmitting(false);
+          reject(rejectionErr);
+        } finally {
+          setIsSaving(false);
+        }
+      });
+
+      toast.promise(saveFormPromise, {
+        loading: "Saving...",
+        success: "Saved!",
+        error: (err: Error) => err.message,
+      });
+    },
+    [isForceFailDuringSubmit, clearData] // Closure gotcha... forgot to regen this function when this bool changes
+  );
+
+  const handleResetSideEffects = useCallback(() => {
+    clearData();
+
+    // Problem: When Formik resets the form, we always want default values to be shown, but its reverted back to the auto-saved data (from page load)...
+
+    // Old solution:
+    // - To reset the form properly, update 'initialValues' w the default values
+    // - Must have 'enableReinitialize' on (default off) to trigger a re-render (key method won't work)
+    // - This caused common confusion, see https://github.com/jaredpalmer/formik/issues/811
+    // - Separate bug caused by loading 'initialValues' w auto-saved data:
+    //   - Validation isn't triggered on the auto-saved data from page load
+    //   - This means if we load valid form, edit a field to be invalid, then...
+    //     undo edit (original valid value from page load), no validation is triggered...
+    //     aka can NEVER submit a valid auto-saved form after being first time editted to trigger validation error...
+
+    // New solution:
+    // - The above was overengineering due to 'initialValues' being loaded w auto-saved form (although fixed, other bugs remained...)
+    // - Instead we will ALWAYS assign 'initialValues' w the default form
+    // - When the auto-saved data has been fetched, we can assign to the current VALUES (NOT 'initialValues')
+    // - This conceptually makes more sense:
+    //   - The same form is loaded every time
+    //   - If there's auto-saved data, we update the form
+    //   - Now Whenever we reset the form, the initial state is always correct
+    // - This achieves the same outcome and value, w none of the complexity, #GAINZ
+  }, [clearData]);
+
+  const isLoading = isLoadingDataForFirstTime || isForceSkeleton;
+
+  if (isLoading)
+    return <ShortFormSkeleton isForceSkeleton={isForceSkeleton} toggleIsForceSkeleton={setIsForceSkeleton} />;
 
   return (
     <Formik
-      initialValues={getDefaultShortFormModel()}
+      enableReinitialize={true}
+      initialValues={initialValues}
       {...(isFastForm && { validateOnBlur: false, validateOnChange: false, validateOnMount: false })}
       validationSchema={ShortFormModelSchema}
-      onSubmit={(values, { setSubmitting }) => handleSubmit(values, setSubmitting)}
+      onSubmit={handleSubmit}
+      onReset={handleResetSideEffects}
     >
       {({ isSubmitting, isValid }) => {
         return (
-          <Form style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            {isFastForm && <FormikValidationDebouncedEffect />}
+          <Form style={{ display: "flex", flexDirection: "column", gap: 5, position: "relative" }}>
+            <PrefillFormEffect data={autoSavedForm} />
+            {isFastForm && (
+              <FormikValidationDebouncedEffect<ShortFormModel>
+                saveFormProgress={saveData}
+                toggleIsAutoSavingProgress={setIsAutoSavingProgress}
+              />
+            )}
+            {isAutoSavingProgress ? (
+              <SyncIcon className="animate-spin transform rotate-180" color="disabled" />
+            ) : (
+              <CheckCircleIcon color="disabled" />
+            )}
             <FormTitle isFastForm={isFastForm} />
             <EmailField />
-            <FormControlPanel
+            <MemoizedShortFormControlPanel
               isResetDisabled={isSaving}
               isSubmitDisabled={isSubmitting || isSaving || !isValid}
               isFastForm={isFastForm}
+              isForceSkeleton={isForceSkeleton}
+              isForceFailDuringSubmit={isForceFailDuringSubmit}
               toggleIsFastForm={setIsFastForm}
+              toggleIsForceSkeleton={setIsForceSkeleton}
+              toggleIsForceFailDuringSubmit={setIsForceFailDuringSubmit}
             />
+            <FormikDebugPanel<ShortFormModel> />
           </Form>
         );
       }}
@@ -72,22 +157,29 @@ const ShortForm = () => {
   );
 };
 
-const FormikValidationDebouncedEffect: React.FC = () => {
-  const formikCtx = useFormikContext();
-  const debouncedValidate = useMemo(() => _.debounce(formikCtx.validateForm, 800), [formikCtx.validateForm]);
+type PrefillFormEffectProps = {
+  data?: ShortFormModel;
+};
 
-  useEffect(
-    function validate() {
-      if (formikCtx.dirty) debouncedValidate(formikCtx.values);
+const PrefillFormEffect: React.FC<PrefillFormEffectProps> = (props) => {
+  const { data } = props;
+  const { setValues } = useFormikContext<ShortFormModel>();
+  const hasRunForTheFirstTime = useRef<boolean>(false);
+  // Even though we render <Formik> by the time we have the auto-saved data ready...
+  // <Formik> only accepts 'initialValues', no 'values' prop, this makes sense but...
+  // means we have to sync via a useEffect, and to avoid lint warnings, extract it here (into a FC)
 
-      return () => {
-        debouncedValidate.cancel();
-      };
-    },
-    // Don't run effect when 'formikCtx.dirty' changes
-    // eslint-disable-next-line
-    [formikCtx.values, debouncedValidate]
-  );
+  // 'useManageLocalStorage' is OUR custom hook, but for fun, let's make is super generic as if it's from some pkg...
+  // super generic meaning it manages both data in localStorage and its internal React state, so, to only render ONCE...
+  // use a ref (and we know this pre-filling effect will only run after we've attempted to load from localStorage
+  useEffect(() => {
+    if (hasRunForTheFirstTime.current) {
+      return;
+    } else {
+      if (data) setValues(data);
+      hasRunForTheFirstTime.current = true;
+    }
+  }, [setValues, data]);
 
   return null;
 };
@@ -98,7 +190,7 @@ type FormTitleProps = {
 
 const FormTitle: React.FC<FormTitleProps> = (props) => {
   const { isFastForm } = props;
-  const { errors } = useFormikContext();
+  const { errors } = useFormikContext<ShortFormModel>();
   const errorsCount = Object.keys(errors).length;
 
   return (
@@ -118,8 +210,13 @@ const EmailField = () => {
   const { isValidating, isSubmitting, errors, values, initialValues, dirty } = useFormikContext<ShortFormModel>();
   const { isShowValidationProgressBar } = useMockValidationProgressBarHook(values.email, initialValues.email);
   const isAvailable = !isValidating && !errors["email"];
-  const isShowBlankPlaceholderHelperText = isShowValidationProgressBar || isSubmitting || !dirty;
-  const helperText = isShowBlankPlaceholderHelperText ? " " : isAvailable ? "Email available" : errors.email ?? " ";
+  const isShowBlankPlaceholderHelperText = isShowValidationProgressBar || isSubmitting;
+  const helperText = isShowBlankPlaceholderHelperText
+    ? " "
+    : isAvailable && dirty
+    ? "Email available"
+    : errors.email ?? " ";
+
   return (
     <Box position="relative">
       <PureFormikInput<ShortFormModel> name="email" isDisabled={isSubmitting} isShowHelperText={false} />
@@ -133,136 +230,6 @@ const EmailField = () => {
         className="absolute w-10 top-[-30px] right-[-30px] transform scale-x-[-1] scale-y-[0.7] rotate-[-125deg]"
       />
     </Box>
-  );
-};
-
-type FormControlPanelProps = {
-  isSubmitDisabled?: boolean;
-  isResetDisabled?: boolean;
-  isFastForm: boolean;
-  toggleIsFastForm: (isFastForm: boolean) => void;
-};
-
-const FormControlPanel: React.FC<FormControlPanelProps> = (props) => {
-  const { isSubmitDisabled = false, isResetDisabled = false, isFastForm, toggleIsFastForm } = props;
-
-  return (
-    <Box display={"flex"} flexDirection={"column"}>
-      <UploadFileButton />
-      <Box display="flex" justifyContent="space-between" paddingTop={1} gap={1}>
-        <Button
-          variant="outlined"
-          fullWidth
-          size="small"
-          type="reset"
-          disabled={isResetDisabled}
-          endIcon={<ClearIcon />}
-        >
-          Reset
-        </Button>
-        <Button
-          variant="contained"
-          fullWidth
-          size="small"
-          type="submit"
-          disabled={isSubmitDisabled}
-          color="primary"
-          endIcon={<DoneIcon />}
-        >
-          Submit
-        </Button>
-      </Box>
-      <Box display={"flex"} flexWrap={"wrap"} gap={2} alignItems={"center"}>
-        <CustomSwitch isOn={isFastForm} handleToggle={toggleIsFastForm} tooltipLabel="Use the fast form..." />
-        <a href="/files/mockShortFormModelFileToUpload.json" download="GOOD test file.json">
-          <Button73 text="⬇️ GOOD test file" handleClick={() => {}} />
-        </a>
-        <a href="/files/mockCorruptFileToUpload.json" download="BAD test file.json">
-          <Button73 text="⬇️ BAD test file" handleClick={() => {}} />
-        </a>
-      </Box>
-    </Box>
-  );
-};
-
-const UploadFileButton: React.FC = () => {
-  const { setValues } = useFormikContext();
-  const [isHoveringFile, setIsHoveringFile] = useState<boolean>(false);
-
-  const preventBrowserDefaultBehaviour = (e: React.MouseEvent | React.KeyboardEvent | React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const loadFileContent = (file: File | undefined) => {
-    if (!file) return;
-
-    const parsingFilePromise = new Promise((resolve, reject) => {
-      const reader = new FileReader(); // Don't worry, GC will clean this up...
-      reader.onload = async (e) => {
-        try {
-          const rawContent = e.target?.result as string;
-          const jsonContent = JSON.parse(rawContent);
-          const newValues = await ShortFormModelSchema.cast(jsonContent);
-          setValues(newValues);
-          resolve(newValues);
-        } catch (err) {
-          console.warn("Unable to parse uploaded file", err);
-          reject(new Error("Unable to load your file"));
-        }
-      };
-      reader.readAsText(file);
-    });
-
-    toast.promise(
-      parsingFilePromise,
-      {
-        loading: "Loading file...",
-        success: "Pre-filled with your file!",
-        error: (e: Error) => e.message,
-      },
-      { error: { icon: "⚠️" } } // most times the user's file is the problem, don't imply (red) error
-    );
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    loadFileContent(file);
-    event.target.value = ""; // allow re-upload w same file name
-  };
-
-  const handleOnDrag = (event: React.DragEvent<HTMLDivElement>) => {
-    preventBrowserDefaultBehaviour(event);
-    const file = event.dataTransfer.files?.[0];
-    loadFileContent(file);
-    setIsHoveringFile(false);
-  };
-
-  const handleOnDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    preventBrowserDefaultBehaviour(event);
-  };
-
-  return (
-    <div
-      onDrop={handleOnDrag}
-      onDragOver={handleOnDragOver}
-      onDragEnter={() => setIsHoveringFile(true)}
-      onDragLeave={() => setIsHoveringFile(false)}
-      className={isHoveringFile ? "duration-150 ease-in-out scale-105" : ""}
-    >
-      <Button
-        startIcon={<UploadFileIcon />}
-        variant="outlined"
-        component="label"
-        size="small"
-        color="info"
-        fullWidth
-        style={{ padding: 10 }}
-      >
-        Pre-fill with your JSON file
-        <input type="file" accept=".json" hidden onChange={handleFileUpload} />
-      </Button>
-    </div>
   );
 };
 
