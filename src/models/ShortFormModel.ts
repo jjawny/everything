@@ -13,7 +13,6 @@ export const ShortFormModelSchema = Yup.object().shape({
       return isValid;
     })
     .default("Subcribe or else 🔫"),
-  isCopingAndSeething: Yup.bool().optional().default(false),
 });
 
 const mockExpensiveEmailValidationCheck = (email: string): boolean => {
