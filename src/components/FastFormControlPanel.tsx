@@ -1,5 +1,5 @@
 "use client";
-import { ShortFormModel, ShortFormModelSchema } from "@/models/ShortFormModel";
+import { FastFormModel, FastFormModelSchema } from "@/models/FastFormModel";
 import BoltIcon from "@mui/icons-material/Bolt";
 import ClearIcon from "@mui/icons-material/Clear";
 import DoneIcon from "@mui/icons-material/Done";
@@ -13,7 +13,8 @@ import toast from "react-hot-toast";
 import Button73 from "./Button73";
 import CustomSwitch from "./CustomSwitch";
 import CustomTooltip from "./CustomTooltip";
-type ShortFormControlPanelProps = {
+
+type FastFormControlPanelProps = {
   isSubmitDisabled?: boolean;
   isResetDisabled?: boolean;
   isFastForm: boolean;
@@ -24,7 +25,7 @@ type ShortFormControlPanelProps = {
   toggleIsForceFailDuringSubmit: (isOn: boolean) => void;
 };
 
-const ShortFormControlPanel: React.FC<ShortFormControlPanelProps> = (props) => {
+const FastFormControlPanel: React.FC<FastFormControlPanelProps> = (props) => {
   const {
     isSubmitDisabled = false,
     isResetDisabled = false,
@@ -36,7 +37,7 @@ const ShortFormControlPanel: React.FC<ShortFormControlPanelProps> = (props) => {
     toggleIsForceFailDuringSubmit,
   } = props;
 
-  const { values, validateForm } = useFormikContext<ShortFormModel>();
+  const { values, validateForm } = useFormikContext<FastFormModel>();
 
   const handleDownload = () => {
     const formJson = JSON.stringify(values);
@@ -107,17 +108,17 @@ const ShortFormControlPanel: React.FC<ShortFormControlPanelProps> = (props) => {
           <Button73 text="⬇️ Save form" handleClick={handleDownload} />
         </CustomTooltip>
         <CustomTooltip title="Perfect JSON to test upload" arrow>
-          <a href="/files/short-form-model-perfect-for-uploading.json" download="GOOD test file.json">
+          <a href="/files/fast-form-perfect-model-to-upload.json" download="PERFECT test file.json">
             <Button73 text="⬇️ PERFECT form" handleClick={() => {}} />
           </a>
         </CustomTooltip>
         <CustomTooltip title="Good but invalid JSON to test upload" arrow>
-          <a href="/files/short-form-model-okay-for-uploading.json" download="GOOD test file.json">
+          <a href="/files/fast-form-okay-model-to-upload.json" download="GOOD test file.json">
             <Button73 text="⬇️ OKAY form" handleClick={() => {}} />
           </a>
         </CustomTooltip>
         <CustomTooltip title="Malformed JSON to test upload" arrow>
-          <a href="/files/short-form-model-bad-for-uploading.json" download="BAD test file.json">
+          <a href="/files/fast-form-bad-model-to-upload.json" download="BAD test file.json">
             <Button73 text="⬇️ BAD form" handleClick={() => {}} />
           </a>
         </CustomTooltip>
@@ -127,7 +128,7 @@ const ShortFormControlPanel: React.FC<ShortFormControlPanelProps> = (props) => {
 };
 
 const UploadFileButton: React.FC = () => {
-  const { setValues } = useFormikContext<ShortFormModel>();
+  const { setValues } = useFormikContext<FastFormModel>();
   const [isHoveringFile, setIsHoveringFile] = useState<boolean>(false);
 
   const preventBrowserDefaultBehaviour = (e: React.MouseEvent | React.KeyboardEvent | React.DragEvent) => {
@@ -144,7 +145,7 @@ const UploadFileButton: React.FC = () => {
         try {
           const rawContent = e.target?.result as string;
           const jsonContent = JSON.parse(rawContent);
-          const newValues = await ShortFormModelSchema.cast(jsonContent);
+          const newValues = await FastFormModelSchema.cast(jsonContent);
           setValues(newValues);
           resolve(newValues);
         } catch (err) {
@@ -207,6 +208,6 @@ const UploadFileButton: React.FC = () => {
   );
 };
 
-const MemoizedShortFormControlPanel = React.memo(ShortFormControlPanel);
+const MemoizedFastFormControlPanel = React.memo(FastFormControlPanel);
 
-export default MemoizedShortFormControlPanel;
+export default MemoizedFastFormControlPanel;

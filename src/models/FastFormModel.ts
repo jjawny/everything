@@ -1,8 +1,8 @@
 import * as Yup from "yup";
 
-export type ShortFormModel = Yup.InferType<typeof ShortFormModelSchema>;
-export const getDefaultShortFormModel = (): ShortFormModel => ShortFormModelSchema.cast({});
-export const ShortFormModelSchema = Yup.object().shape({
+export type FastFormModel = Yup.InferType<typeof FastFormModelSchema>;
+export const getDefaultFastFormModel = (): FastFormModel => FastFormModelSchema.cast({});
+export const FastFormModelSchema = Yup.object().shape({
   email: Yup.string()
     .required("Required")
     .min(2, "Must be more than 2 characters")

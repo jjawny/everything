@@ -1,7 +1,7 @@
 "use client";
 import useManageLocalStorage from "@/hooks/useManageLocalStorage";
 import useMockValidationProgressBarHook from "@/hooks/useMockValidationProgressBarHook";
-import { getDefaultShortFormModel, ShortFormModel, ShortFormModelSchema } from "@/models/ShortFormModel";
+import { FastFormModel, FastFormModelSchema, getDefaultFastFormModel } from "@/models/FastFormModel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SyncIcon from "@mui/icons-material/Sync";
 import { Badge, Box, FormHelperText, LinearProgress } from "@mui/material";
@@ -11,27 +11,27 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import toast from "react-hot-toast";
 import * as Yup from "yup";
+import MemoizedFastFormControlPanel from "./FastFormControlPanel";
+import FastFormSkeleton from "./FastFormSkeleton";
 import FormikDebugPanel from "./FormikDebugPanel";
 import FormikValidationDebouncedEffect from "./FormikValidationDebounceEffect";
 import PureFormikInput from "./PureFormikInput";
-import MemoizedShortFormControlPanel from "./ShortFormControlPanel";
-import ShortFormSkeleton from "./ShortFormSkeleton";
 
-const SHORT_FORM_KEY = "shortFormData";
+const FAST_FORM_KEY = "fastFormData";
 
-const ShortForm = () => {
+const FastForm = () => {
   const [isFastForm, setIsFastForm] = useState<boolean>(true);
   const [isAutoSavingProgress, setIsAutoSavingProgress] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false); // extracted to control reset button separately (keep alive after submit)
   const [isForceFailDuringSubmit, setIsForceFailDuringSubmit] = useState<boolean>(false);
   const [isForceSkeleton, setIsForceSkeleton] = useState<boolean>(false);
-  const initialValues = getDefaultShortFormModel();
+  const initialValues = getDefaultFastFormModel();
   const {
     data: autoSavedForm,
     isLoadingDataForFirstTime,
     clearData,
     saveData,
-  } = useManageLocalStorage<ShortFormModel>(SHORT_FORM_KEY);
+  } = useManageLocalStorage<FastFormModel>(FAST_FORM_KEY);
 
   // TODO: move to tricks tab
   // const [forceReRenderKey, setForceReRenderKey] = useState<number>(0);
@@ -41,7 +41,7 @@ const ShortForm = () => {
   // Solution: Remove 'async' from signature lol
   // See: https://github.com/jaredpalmer/formik/issues/2442#issuecomment-619404491
   const handleSubmit = useCallback(
-    (values: ShortFormModel, { setSubmitting, validateForm, setFieldValue }: FormikHelpers<ShortFormModel>) => {
+    (values: FastFormModel, { setSubmitting, validateForm, setFieldValue }: FormikHelpers<FastFormModel>) => {
       const saveFormPromise = new Promise<void>(async (resolve, reject) => {
         try {
           setIsSaving(true);
@@ -111,14 +111,14 @@ const ShortForm = () => {
   const isLoading = isLoadingDataForFirstTime || isForceSkeleton;
 
   if (isLoading)
-    return <ShortFormSkeleton isForceSkeleton={isForceSkeleton} toggleIsForceSkeleton={setIsForceSkeleton} />;
+    return <FastFormSkeleton isForceSkeleton={isForceSkeleton} toggleIsForceSkeleton={setIsForceSkeleton} />;
 
   return (
     <Formik
       enableReinitialize={true}
       initialValues={initialValues}
       {...(isFastForm && { validateOnBlur: false, validateOnChange: false, validateOnMount: false })}
-      validationSchema={ShortFormModelSchema}
+      validationSchema={FastFormModelSchema}
       onSubmit={handleSubmit}
       onReset={handleResetSideEffects}
     >
@@ -127,7 +127,7 @@ const ShortForm = () => {
           <Form style={{ display: "flex", flexDirection: "column", gap: 5, position: "relative" }}>
             <PrefillFormEffect data={autoSavedForm} />
             {isFastForm && (
-              <FormikValidationDebouncedEffect<ShortFormModel>
+              <FormikValidationDebouncedEffect<FastFormModel>
                 saveFormProgress={saveData}
                 toggleIsAutoSavingProgress={setIsAutoSavingProgress}
               />
@@ -139,7 +139,7 @@ const ShortForm = () => {
             )}
             <FormTitle isFastForm={isFastForm} />
             <EmailField />
-            <MemoizedShortFormControlPanel
+            <MemoizedFastFormControlPanel
               isResetDisabled={isSaving}
               isSubmitDisabled={isSubmitting || isSaving || !isValid}
               isFastForm={isFastForm}
@@ -149,7 +149,7 @@ const ShortForm = () => {
               toggleIsForceSkeleton={setIsForceSkeleton}
               toggleIsForceFailDuringSubmit={setIsForceFailDuringSubmit}
             />
-            <FormikDebugPanel<ShortFormModel> />
+            <FormikDebugPanel<FastFormModel> />
           </Form>
         );
       }}
@@ -158,12 +158,12 @@ const ShortForm = () => {
 };
 
 type PrefillFormEffectProps = {
-  data?: ShortFormModel;
+  data?: FastFormModel;
 };
 
 const PrefillFormEffect: React.FC<PrefillFormEffectProps> = (props) => {
   const { data } = props;
-  const { setValues } = useFormikContext<ShortFormModel>();
+  const { setValues } = useFormikContext<FastFormModel>();
   const hasRunForTheFirstTime = useRef<boolean>(false);
   // Even though we render <Formik> by the time we have the auto-saved data ready...
   // <Formik> only accepts 'initialValues', no 'values' prop, this makes sense but...
@@ -190,7 +190,7 @@ type FormTitleProps = {
 
 const FormTitle: React.FC<FormTitleProps> = (props) => {
   const { isFastForm } = props;
-  const { errors } = useFormikContext<ShortFormModel>();
+  const { errors } = useFormikContext<FastFormModel>();
   const errorsCount = Object.keys(errors).length;
 
   return (
@@ -207,7 +207,7 @@ const FormTitle: React.FC<FormTitleProps> = (props) => {
 };
 
 const EmailField = () => {
-  const { isValidating, isSubmitting, errors, values, initialValues, dirty } = useFormikContext<ShortFormModel>();
+  const { isValidating, isSubmitting, errors, values, initialValues, dirty } = useFormikContext<FastFormModel>();
   const { isShowValidationProgressBar } = useMockValidationProgressBarHook(values.email, initialValues.email);
   const isAvailable = !isValidating && !errors["email"];
   const isShowBlankPlaceholderHelperText = isShowValidationProgressBar || isSubmitting;
@@ -219,7 +219,7 @@ const EmailField = () => {
 
   return (
     <Box position="relative">
-      <PureFormikInput<ShortFormModel> name="email" isDisabled={isSubmitting} isShowHelperText={false} />
+      <PureFormikInput<FastFormModel> name="email" isDisabled={isSubmitting} isShowHelperText={false} />
       {isShowValidationProgressBar ? <LinearProgress /> : <Box minHeight={"4px"}></Box>}
       <FormHelperText style={{ color: isAvailable ? "green" : "red" }}>{helperText}</FormHelperText>
       <Image
@@ -233,4 +233,4 @@ const EmailField = () => {
   );
 };
 
-export default ShortForm;
+export default FastForm;

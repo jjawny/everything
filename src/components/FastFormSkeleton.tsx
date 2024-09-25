@@ -5,12 +5,12 @@ import React from "react";
 import CustomSwitch from "./CustomSwitch";
 import CustomTooltip from "./CustomTooltip";
 
-type ShortFormSkeletonProps = {
+type FastFormSkeletonProps = {
   isForceSkeleton: boolean;
   toggleIsForceSkeleton: (isOn: boolean) => void;
 };
 
-const ShortFormSkeleton: React.FC<ShortFormSkeletonProps> = (props) => {
+const FastFormSkeleton: React.FC<FastFormSkeletonProps> = (props) => {
   const { isForceSkeleton, toggleIsForceSkeleton } = props;
 
   return (
@@ -68,4 +68,4 @@ const ShortFormSkeleton: React.FC<ShortFormSkeletonProps> = (props) => {
   );
 };
 
-export default ShortFormSkeleton;
+export default FastFormSkeleton;

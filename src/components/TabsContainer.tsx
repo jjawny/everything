@@ -3,7 +3,7 @@ import { Tab } from "@mui/material";
 import Box from "@mui/material/Box";
 import Tabs, { tabsClasses } from "@mui/material/Tabs";
 import React, { useState } from "react";
-import ShortForm from "./ShortForm";
+import FastForm from "./FastForm";
 
 // See https://mui.com/material-ui/react-tabs
 
@@ -68,19 +68,17 @@ const TabsContainer = () => {
       >
         <Tab label="Fast Form" {...a11yProps(0)} />
         <Tab label="Fields Galore" {...a11yProps(1)} />
-        <Tab label="Idea3" {...a11yProps(2)} />
-        <Tab label="Idea4" {...a11yProps(3)} />
-        <Tab label="Idea5" {...a11yProps(4)} />
-        <Tab label="Idea6" {...a11yProps(5)} />
+        <Tab label="Take My Props!" {...a11yProps(2)} />
+        <Tab label="OAuth" {...a11yProps(3)} />
+        <Tab label="oauth TODO: roles/claims etc" {...a11yProps(4)} />
       </Tabs>
       <TabPanel value={value} idx={0}>
-        <ShortForm />
+        <FastForm />
       </TabPanel>
       <TabPanel value={value} idx={1} />
       <TabPanel value={value} idx={2} />
       <TabPanel value={value} idx={3} />
       <TabPanel value={value} idx={4} />
-      <TabPanel value={value} idx={5} />
     </Box>
   );
 };
