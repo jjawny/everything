@@ -35,6 +35,26 @@ const ShortFormControlPanel: React.FC<ShortFormControlPanelProps> = (props) => {
     toggleIsForceFailDuringSubmit,
   } = props;
 
+  const { values, validateForm } = useFormikContext<ShortFormModel>();
+
+  const handleDownload = () => {
+    const formJson = JSON.stringify(values);
+    const formBlob = new Blob([formJson], { type: "application/json" });
+
+    // Must be removed manually otherwise stays alive for the lifetime of the document (heap?)
+    const downloadUrl = URL.createObjectURL(formBlob);
+    {
+      // Attach temp <a> to the DOM and simulate click event
+      const tempLinkElement = document.createElement("a");
+      tempLinkElement.href = downloadUrl;
+      tempLinkElement.download = "PERFECT test file.json";
+      document.body.appendChild(tempLinkElement);
+      tempLinkElement.click();
+      document.body.removeChild(tempLinkElement);
+    }
+    URL.revokeObjectURL(downloadUrl);
+  };
+
   return (
     <Box display={"flex"} flexDirection={"column"}>
       <UploadFileButton />
@@ -82,33 +102,27 @@ const ShortFormControlPanel: React.FC<ShortFormControlPanelProps> = (props) => {
           </CustomTooltip>
           <PriorityHighIcon color="error" />
         </div>
-
+        <div>
+          <CustomTooltip title={"Validate now"} arrow placement="bottom">
+            <Button73 text="✔️ VALIDATE NOW" handleClick={() => validateForm()} />
+          </CustomTooltip>
+        </div>
         <CustomSwitch isOn={isFastForm} handleToggle={toggleIsFastForm} tooltipLabel="Use the fast form..." />
         <CustomTooltip title={"Save your current progress in JSON"} arrow placement="bottom">
-          <a href="/files/mockShortFormModelFileToUpload.json" download="GOOD test file.json">
-            <Button73 text="⬇️ Save THIS form" handleClick={() => {}} />
-          </a>
+          <Button73 text="⬇️ Save THIS form" handleClick={handleDownload} />
         </CustomTooltip>
-        <CustomTooltip title={"Mock valid JSON to test in upload"} arrow placement="bottom">
-          <a href="/files/mockShortFormModelFileToUpload.json" download="GOOD test file.json">
+        <CustomTooltip title={"Perfect JSON to test upload"} arrow placement="bottom">
+          <a href="/files/short-form-model-perfect-for-uploading.json" download="GOOD test file.json">
             <Button73 text="⬇️ PERFECT form" handleClick={() => {}} />
           </a>
         </CustomTooltip>
-        <CustomTooltip title={"Mock valid JSON to test in upload"} arrow placement="bottom">
-          <a href="/files/mockShortFormModelFileToUpload.json" download="GOOD test file.json">
+        <CustomTooltip title={"Good but invalid JSON to test upload"} arrow placement="bottom">
+          <a href="/files/short-form-model-okay-for-uploading.json" download="GOOD test file.json">
             <Button73 text="⬇️ OKAY form" handleClick={() => {}} />
           </a>
         </CustomTooltip>
-        <CustomTooltip
-          title={
-            <span>
-              Mock <b>in</b>valid JSON to test in upload
-            </span>
-          }
-          arrow
-          placement="bottom"
-        >
-          <a href="/files/mockCorruptFileToUpload.json" download="BAD test file.json">
+        <CustomTooltip title={"Malformed JSON to test upload"} arrow placement="bottom">
+          <a href="/files/short-form-model-bad-for-uploading.json" download="BAD test file.json">
             <Button73 text="⬇️ BAD form" handleClick={() => {}} />
           </a>
         </CustomTooltip>
