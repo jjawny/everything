@@ -1,4 +1,3 @@
-import BoltIcon from "@mui/icons-material/Bolt";
 import { Box } from "@mui/material";
 import Switch from "@mui/material/Switch";
 import React from "react";
@@ -6,10 +5,11 @@ import React from "react";
 type CustomSwitchProps = {
   isOn: boolean;
   handleToggle: (isOn: boolean) => void;
+  customIcon?: React.ReactNode;
 };
 
 const CustomSwitch = React.forwardRef<HTMLDivElement, CustomSwitchProps>((props, ref) => {
-  const { isOn, handleToggle, ...rest } = props;
+  const { isOn, handleToggle, customIcon, ...rest } = props;
 
   return (
     <Box
@@ -18,11 +18,9 @@ const CustomSwitch = React.forwardRef<HTMLDivElement, CustomSwitchProps>((props,
     >
       <Switch
         size="medium"
-        icon={<BoltIcon />}
-        checkedIcon={<BoltIcon />}
+        {...(customIcon && { icon: customIcon, checkedIcon: customIcon })}
         checked={isOn}
         onChange={(e) => handleToggle(e.target.checked)}
-        sx={{ height: 41 }}
       />
     </Box>
   );
