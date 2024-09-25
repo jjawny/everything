@@ -8,7 +8,6 @@ type Button73Props = {
 };
 
 const Button73 = React.forwardRef<HTMLButtonElement, Button73Props>((props, ref) => {
-  // TODO: mui custom tooltip complained about not being able to pass a ref (console errors) now we let it, we don't need to assign the ref, but if we WANT that tool tip to hook into our component, we need to
   const { handleClick, isDisableHoverScale = false, text, children, ...rest } = props;
 
   return (
