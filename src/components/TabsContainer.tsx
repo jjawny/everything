@@ -31,11 +31,11 @@ const TabPanel: React.FC<TabPanelProps> = (props: TabPanelProps) => {
   );
 };
 
-// TODO: Learn more about accessability, what are the must haves?
+// TODO: Learn more about accessability, what are the must haves? are they all prefixed 'aria'
 const a11yProps = (idx: number) => {
   return {
-    id: `simple-tab-${idx}`,
-    "aria-controls": `simple-tabpanel-${idx}`,
+    id: `home-tab-${idx}`,
+    "aria-controls": `home-tabpanel-${idx}`,
   };
 };
 
@@ -66,8 +66,8 @@ const TabsContainer = () => {
           },
         }}
       >
-        <Tab label="Short Form" {...a11yProps(0)} />
-        <Tab label="Idea2" {...a11yProps(1)} />
+        <Tab label="Fast Form" {...a11yProps(0)} />
+        <Tab label="Fields Galore" {...a11yProps(1)} />
         <Tab label="Idea3" {...a11yProps(2)} />
         <Tab label="Idea4" {...a11yProps(3)} />
         <Tab label="Idea5" {...a11yProps(4)} />
