@@ -30,12 +30,19 @@ const FormikDebugPanel = <T,>() => {
       <div ref={fixFindDomNodeConsoleErrorRef}>
         <Accordion expanded={isExpanded}>
           <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="debug-panel"
             id="debug-panel"
+            aria-controls="debug-panel"
+            expandIcon={<ExpandMoreIcon />}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
+            sx={{
+              justifyContent: "space-between",
+              "& .MuiAccordionSummary-content": {
+                transform: "scaleX(3) translateX(36px)",
+                maxWidth: "fit-content",
+              },
+            }}
           >
             DEBUG PANEL
           </AccordionSummary>
