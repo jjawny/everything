@@ -1,34 +1,31 @@
 import BoltIcon from "@mui/icons-material/Bolt";
 import { Box } from "@mui/material";
 import Switch from "@mui/material/Switch";
-import CustomTooltip from "./CustomTooltip";
+import React from "react";
 
 type CustomSwitchProps = {
   isOn: boolean;
   handleToggle: (isOn: boolean) => void;
-  tooltipLabel?: string;
 };
 
-const CustomSwitch: React.FC<CustomSwitchProps> = (props) => {
-  const { isOn, handleToggle, tooltipLabel = "Toggle me!" } = props;
+const CustomSwitch = React.forwardRef<HTMLDivElement, CustomSwitchProps>((props, ref) => {
+  const { isOn, handleToggle, ...rest } = props;
 
   return (
-    <Box display="flex" gap={2} alignItems="center" justifyContent="center">
-      <CustomTooltip title={tooltipLabel} arrow placement="left">
-        <Box>
-          <Switch
-            size="medium"
-            icon={<BoltIcon />}
-            checkedIcon={<BoltIcon />}
-            checked={isOn}
-            onChange={(e) => handleToggle(e.target.checked)}
-            inputProps={{ "aria-label": tooltipLabel }}
-            sx={{ height: 41 }}
-          />
-        </Box>
-      </CustomTooltip>
+    <Box
+      ref={ref} // our <Tooltip> wrapper to work (must pass ref down)
+      {...rest} // for <Tooltip> wrapper
+    >
+      <Switch
+        size="medium"
+        icon={<BoltIcon />}
+        checkedIcon={<BoltIcon />}
+        checked={isOn}
+        onChange={(e) => handleToggle(e.target.checked)}
+        sx={{ height: 41 }}
+      />
     </Box>
   );
-};
+});
 
 export default CustomSwitch;
