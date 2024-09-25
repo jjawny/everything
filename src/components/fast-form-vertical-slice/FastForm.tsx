@@ -11,11 +11,11 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import toast from "react-hot-toast";
 import * as Yup from "yup";
+import FormikValidationDebouncedEffect from "../shared/FormikValidationDebounceEffect";
+import PureFormikInput from "../shared/PureFormikInput";
 import MemoizedFastFormControlPanel from "./FastFormControlPanel";
+import FastFormDebugPanel from "./FastFormDebugPanel";
 import FastFormSkeleton from "./FastFormSkeleton";
-import FormikDebugPanel from "./FormikDebugPanel";
-import FormikValidationDebouncedEffect from "./FormikValidationDebounceEffect";
-import PureFormikInput from "./PureFormikInput";
 
 const FAST_FORM_KEY = "fastFormData";
 
@@ -149,7 +149,7 @@ const FastForm = () => {
               toggleIsForceSkeleton={setIsForceSkeleton}
               toggleIsForceFailDuringSubmit={setIsForceFailDuringSubmit}
             />
-            <FormikDebugPanel<FastFormModel> />
+            <FastFormDebugPanel<FastFormModel> />
           </Form>
         );
       }}

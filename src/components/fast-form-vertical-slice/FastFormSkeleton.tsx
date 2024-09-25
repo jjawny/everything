@@ -2,8 +2,8 @@
 import HourglassTopIcon from "@mui/icons-material/HourglassTop";
 import { Box, Paper, Skeleton } from "@mui/material";
 import React from "react";
-import CustomSwitch from "./CustomSwitch";
-import CustomTooltip from "./CustomTooltip";
+import CustomSwitch from "../shared/CustomSwitch";
+import CustomTooltip from "../shared/CustomTooltip";
 
 type FastFormSkeletonProps = {
   isForceSkeleton: boolean;

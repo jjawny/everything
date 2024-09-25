@@ -10,9 +10,9 @@ import { Box, Button } from "@mui/material";
 import { useFormikContext } from "formik";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
-import Button73 from "./Button73";
-import CustomSwitch from "./CustomSwitch";
-import CustomTooltip from "./CustomTooltip";
+import Button73 from "../shared/Button73";
+import CustomSwitch from "../shared/CustomSwitch";
+import CustomTooltip from "../shared/CustomTooltip";
 
 type FastFormControlPanelProps = {
   isSubmitDisabled?: boolean;

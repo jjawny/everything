@@ -22,9 +22,11 @@ const Button73 = React.forwardRef<HTMLButtonElement, Button73Props>((props, ref)
       role="button"
     >
       {text ?? "PRESS ME PLEASE"}
-      {children}
+      {children && children}
     </button>
   );
 });
+
+Button73.displayName = "Button73";
 
 export default Button73;

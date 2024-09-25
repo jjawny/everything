@@ -26,4 +26,6 @@ const CustomSwitch = React.forwardRef<HTMLDivElement, CustomSwitchProps>((props,
   );
 });
 
+CustomSwitch.displayName = "CustomSwitch";
+
 export default CustomSwitch;

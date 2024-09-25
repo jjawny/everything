@@ -5,7 +5,7 @@ import { useFormikContext } from "formik";
 import { useMemo, useRef, useState } from "react";
 import Draggable from "react-draggable";
 
-const FormikDebugPanel = <T,>() => {
+const FastFormDebugPanel = <T,>() => {
   const { values, errors } = useFormikContext<T>();
   const valuesMemoized = useMemo(() => JSON.stringify(values, null, 2), [values]);
   const errorsMemoized = useMemo(() => JSON.stringify(errors, null, 2), [errors]);
@@ -64,4 +64,4 @@ const FormikDebugPanel = <T,>() => {
   );
 };
 
-export default FormikDebugPanel;
+export default FastFormDebugPanel;

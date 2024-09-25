@@ -3,7 +3,7 @@ import { Tab } from "@mui/material";
 import Box from "@mui/material/Box";
 import Tabs, { tabsClasses } from "@mui/material/Tabs";
 import React, { useState } from "react";
-import FastForm from "./FastForm";
+import FastForm from "./fast-form-vertical-slice/FastForm";
 
 // See https://mui.com/material-ui/react-tabs
 
