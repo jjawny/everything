@@ -12,7 +12,7 @@ const Button73 = React.forwardRef<HTMLButtonElement, Button73Props>((props, ref)
 
   return (
     <button
-      ref={ref} // allow things like our <Tooltip> wrapper to work (must pass ref down)
+      ref={ref} // our <Tooltip> wrapper to work (must pass ref down)
       {...rest} // for <Tooltip> wrapper
       onClick={handleClick}
       className={`button-73 bg-white rounded-md border-none shadow-inner inline-block text-black text-xs font-sans font-medium cursor-pointer leading-none m-0 outline-none px-2 py-1 transition-all duration-150 ease-in-out hover:bg-yellow-400 hover:shadow-inner-orange-500 ${
