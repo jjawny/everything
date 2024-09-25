@@ -1,17 +1,18 @@
 "use client";
 import { ShortFormModel, ShortFormModelSchema } from "@/models/ShortFormModel";
+import BoltIcon from "@mui/icons-material/Bolt";
 import ClearIcon from "@mui/icons-material/Clear";
 import DoneIcon from "@mui/icons-material/Done";
-import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
+import FeedbackIcon from "@mui/icons-material/Feedback";
+import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
-import { Box, Button, Checkbox } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { useFormikContext } from "formik";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import Button73 from "./Button73";
 import CustomSwitch from "./CustomSwitch";
 import CustomTooltip from "./CustomTooltip";
-
 type ShortFormControlPanelProps = {
   isSubmitDisabled?: boolean;
   isResetDisabled?: boolean;
@@ -81,47 +82,41 @@ const ShortFormControlPanel: React.FC<ShortFormControlPanelProps> = (props) => {
           Submit
         </Button>
       </Box>
-      <Box display={"flex"} flexWrap={"wrap"} gap={1} alignItems={"center"}>
-        <div>
-          <CustomTooltip title={"Force skeleton (destroys the form!!!)"} arrow placement="bottom">
-            <Checkbox
-              checked={isForceSkeleton}
-              onChange={(e) => toggleIsForceSkeleton(e.target.checked)}
-              style={{ padding: 0 }}
-            />
-          </CustomTooltip>{" "}
-          ☠️
-        </div>
-        <div>
-          <CustomTooltip title={"Force a valid form to fail during submit"} arrow placement="bottom">
-            <Checkbox
-              checked={isForceFailDuringSubmit}
-              onChange={(e) => toggleIsForceFailDuringSubmit(e.target.checked)}
-              style={{ padding: 0 }}
-            />
-          </CustomTooltip>
-          <PriorityHighIcon color="error" />
-        </div>
-        <div>
-          <CustomTooltip title={"Validate now"} arrow placement="bottom">
-            <Button73 text="✔️ VALIDATE NOW" handleClick={() => validateForm()} />
-          </CustomTooltip>
-        </div>
-        <CustomSwitch isOn={isFastForm} handleToggle={toggleIsFastForm} tooltipLabel="Use the fast form..." />
-        <CustomTooltip title={"Save your current progress in JSON"} arrow placement="bottom">
-          <Button73 text="⬇️ Save THIS form" handleClick={handleDownload} />
+      <Box display={"flex"} flexWrap={"wrap"} alignItems={"center"} gap={"3px"}>
+        <CustomTooltip title="Force skeleton (destroys the form!!!)" arrow>
+          <CustomSwitch
+            isOn={isForceSkeleton}
+            handleToggle={toggleIsForceSkeleton}
+            customIcon={<HourglassBottomIcon />}
+          />
         </CustomTooltip>
-        <CustomTooltip title={"Perfect JSON to test upload"} arrow placement="bottom">
+        <CustomTooltip title="Force a valid form to fail during submit" arrow>
+          <CustomSwitch
+            isOn={isForceFailDuringSubmit}
+            handleToggle={toggleIsForceFailDuringSubmit}
+            customIcon={<FeedbackIcon />}
+          />
+        </CustomTooltip>
+        <CustomTooltip title="Use the fast form">
+          <CustomSwitch isOn={isFastForm} handleToggle={toggleIsFastForm} customIcon={<BoltIcon />} />
+        </CustomTooltip>
+        <CustomTooltip title="Validate now" arrow>
+          <Button73 text="✔️ VALIDATE NOW" handleClick={() => validateForm()} />
+        </CustomTooltip>
+        <CustomTooltip title={"Save your current progress in JSON"} arrow>
+          <Button73 text="⬇️ Save form" handleClick={handleDownload} />
+        </CustomTooltip>
+        <CustomTooltip title="Perfect JSON to test upload" arrow>
           <a href="/files/short-form-model-perfect-for-uploading.json" download="GOOD test file.json">
             <Button73 text="⬇️ PERFECT form" handleClick={() => {}} />
           </a>
         </CustomTooltip>
-        <CustomTooltip title={"Good but invalid JSON to test upload"} arrow placement="bottom">
+        <CustomTooltip title="Good but invalid JSON to test upload" arrow>
           <a href="/files/short-form-model-okay-for-uploading.json" download="GOOD test file.json">
             <Button73 text="⬇️ OKAY form" handleClick={() => {}} />
           </a>
         </CustomTooltip>
-        <CustomTooltip title={"Malformed JSON to test upload"} arrow placement="bottom">
+        <CustomTooltip title="Malformed JSON to test upload" arrow>
           <a href="/files/short-form-model-bad-for-uploading.json" download="BAD test file.json">
             <Button73 text="⬇️ BAD form" handleClick={() => {}} />
           </a>
