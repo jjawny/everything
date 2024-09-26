@@ -6,21 +6,17 @@ import { useMemo, useRef, useState } from "react";
 import Draggable from "react-draggable";
 
 const FastFormDebugPanel = <T,>() => {
-  const { values, errors } = useFormikContext<T>();
-  const valuesMemoized = useMemo(() => JSON.stringify(values, null, 2), [values]);
-  const errorsMemoized = useMemo(() => JSON.stringify(errors, null, 2), [errors]);
+  const { values: formValues, errors: formErrors } = useFormikContext<T>();
+  const formValuesMemoized = useMemo(() => JSON.stringify(formValues, null, 2), [formValues]);
+  const formErrorsMemoized = useMemo(() => JSON.stringify(formErrors, null, 2), [formErrors]);
   const fixFindDomNodeConsoleErrorRef = useRef(null);
 
-  // To avoid accordion expanding on drag, handle expanding manually to ignore drag events
+  // To avoid accordion expanding when dragging, handle expanding manually to ignore drag events
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
   const isDraggingRef = useRef<boolean>(false);
 
-  const handleMouseDown = () => {
-    isDraggingRef.current = false;
-  };
-  const handleMouseMove = () => {
-    isDraggingRef.current = true;
-  };
+  const handleMouseDown = () => (isDraggingRef.current = false);
+  const handleMouseMove = () => (isDraggingRef.current = true);
   const handleMouseUp = () => {
     if (!isDraggingRef.current) setIsExpanded((curr) => !curr);
   };
@@ -50,10 +46,10 @@ const FastFormDebugPanel = <T,>() => {
             <Box ref={fixFindDomNodeConsoleErrorRef} borderRadius={1} style={{ backgroundColor: "lightgray" }}>
               <div className="p-1 text-xs">
                 <pre>
-                  <code>values: {valuesMemoized}</code>
+                  <code>values: {formValuesMemoized}</code>
                 </pre>
                 <pre>
-                  <code>errors: {errorsMemoized}</code>
+                  <code>errors: {formErrorsMemoized}</code>
                 </pre>
               </div>
             </Box>
