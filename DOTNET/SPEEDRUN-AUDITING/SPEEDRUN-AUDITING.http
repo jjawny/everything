@@ -1,0 +1,6 @@
+@SPEEDRUN_AUDITING_HostAddress = http://localhost:5125
+
+GET {{SPEEDRUN_AUDITING_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
