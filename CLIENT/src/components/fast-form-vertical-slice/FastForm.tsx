@@ -37,7 +37,7 @@ const FastForm = () => {
   // const [forceReRenderKey, setForceReRenderKey] = useState<number>(0);
   // const forceReRender = () => setForceReRenderKey((curr) => (curr === 0 ? 1 : 0));
 
-  // Gotcha: If the handleSubmit is 'async' in the signature, Formik 'isSubmitting' bool is no longer accurate...
+  // Gotcha: If handleSubmit() is 'async' in the signature, Formik 'isSubmitting' bool is no longer accurate...
   // Solution: Remove 'async' from signature lol
   // See: https://github.com/jaredpalmer/formik/issues/2442#issuecomment-619404491
   const handleSubmit = useCallback(
