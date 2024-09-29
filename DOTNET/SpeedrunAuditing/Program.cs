@@ -1,44 +1,64 @@
+using Microsoft.AspNetCore.Mvc;
+using SpeedrunAuditing.Configs;
+using SpeedrunAuditing.Contexts;
+using SpeedrunAuditing.Models;
+
+// 1. Add services into DI container:
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
 {
+  builder.Services.AddEndpointsApiExplorer();
+  builder.Services.AddSwaggerGen();
+  builder.Services.AddHttpContextAccessor();
+  builder.Services.AddScoped<AuditInterceptor>();
+}
+
+// 2. Configure the HTTP request (middleware) pipeline:
+var app = builder.Build();
+{
+  if (app.Environment.IsDevelopment())
+  {
     app.UseSwagger();
     app.UseSwaggerUI();
+  }
+  app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
+// 3. Endpoints:
+// Validate, sanitize, map, & handle errors
+app.MapPost("/api/creditcards", async (
+  [FromBody] CreditCard dto,
+  [FromServices] NamingThingsIsHardContext ctx
+) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+  ctx.CreditCards.Add(dto);
+  await ctx.SaveChangesAsync();
+  return Results.Created($"/api/solos/{dto.Id}", dto);
+});
 
-app.MapGet("/weatherforecast", () =>
+app.MapPatch("/api/creditcards/{id}", async (
+  Guid id,
+  [FromBody] CreditCard dto,
+  [FromServices] NamingThingsIsHardContext ctx
+) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+  var entity = await ctx.CreditCards.FindAsync(id);
+  if (entity == null) return Results.NotFound();
+  entity.Number = dto.Number;
+  ctx.CreditCards.Update(entity);
+  await ctx.SaveChangesAsync();
+  return Results.Ok(entity);
+});
+
+app.MapDelete("/api/creditcards/{id}", async (
+  Guid id,
+  [FromServices] NamingThingsIsHardContext ctx
+) =>
+{
+  var entity = await ctx.CreditCards.FindAsync(id);
+  if (entity == null) return Results.NotFound();
+  ctx.CreditCards.Remove(entity);
+  await ctx.SaveChangesAsync();
+  return Results.Ok();
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
