@@ -26,7 +26,7 @@ public class NamingThingsIsHardContext : DbContext
     if (!opts.IsConfigured)
     {
       opts
-        .UseSqlite($"Data Source ={_dbPath}")
+        .UseSqlite($"Data Source={_dbPath}")
         .AddInterceptors(_auditInterceptor);
     }
   }
