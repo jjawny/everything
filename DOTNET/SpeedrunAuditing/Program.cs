@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
   builder.Services.AddSwaggerGen();
   builder.Services.AddHttpContextAccessor();
   builder.Services.AddScoped<AuditInterceptor>();
+  builder.Services.AddDbContext<NamingThingsIsHardContext>();
 }
 
 // 2. Configure the HTTP request (middleware) pipeline:
@@ -43,7 +44,7 @@ app.MapPatch("/api/creditcards/{id}", async (
 {
   var entity = await ctx.CreditCards.FindAsync(id);
   if (entity == null) return Results.NotFound();
-  entity.Number = dto.Number;
+  entity.Bank = dto.Bank;
   ctx.CreditCards.Update(entity);
   await ctx.SaveChangesAsync();
   return Results.Ok(entity);
@@ -60,5 +61,6 @@ app.MapDelete("/api/creditcards/{id}", async (
   await ctx.SaveChangesAsync();
   return Results.Ok();
 });
+
 
 app.Run();
