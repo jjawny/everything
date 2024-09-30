@@ -38,7 +38,7 @@ public class AuditInterceptor : SaveChangesInterceptor
     if (ctx == null) return;
 
     // var userId = _httpContextAccessor.HttpContext?.User?.FindFirst("sub")?.Value ?? Guid.Empty.ToString();
-    var userId = Guid.NewGuid();
+    var userId = Guid.NewGuid(); // DUMMY FOR NOW
 
     foreach (var entry in ctx.ChangeTracker.Entries())
     {
