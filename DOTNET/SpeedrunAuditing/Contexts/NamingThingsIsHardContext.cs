@@ -8,7 +8,6 @@ public class NamingThingsIsHardContext : DbContext
 {
   public DbSet<CreditCard> CreditCards { get; set; }
   private readonly string _dbPath;
-
   private readonly AuditInterceptor _auditInterceptor;
 
   public NamingThingsIsHardContext(
