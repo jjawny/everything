@@ -33,7 +33,7 @@ app.MapPost("/api/creditcards", async (
 {
   ctx.CreditCards.Add(dto);
   await ctx.SaveChangesAsync();
-  return Results.Created($"/api/solos/{dto.Id}", dto);
+  return Results.Created($"/api/creditcards/{dto.Id}", dto);
 });
 
 app.MapPatch("/api/creditcards/{id}", async (
