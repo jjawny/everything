@@ -62,5 +62,4 @@ app.MapDelete("/api/creditcards/{id}", async (
   return Results.Ok();
 });
 
-
 app.Run();
