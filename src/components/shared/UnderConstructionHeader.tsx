@@ -13,7 +13,7 @@ const UnderConstructionHeader: React.FC = () => {
     >
       <div className="bg-amber-300 bg-under-construction w-full h-1"></div>
       <div
-        className="bg-amber-300 bg-under-construction pr-3 rounded-b-md pb-1 px-2 w-fit text-xs hover:scale-x-105 transition-all ease-in-out duration-100 border-b-[1px] border-x-[1px] border-amber-200 text-amber-900"
+        className="bg-amber-300 bg-under-construction pr-3 rounded-b-md pb-1 px-2 w-fit text-xs hover:scale-x-105 transition-all ease-in-out duration-100 border-b-2 border-x-2 border-amber-200 text-amber-900"
         onMouseEnter={() => setIsHover(true)}
         onMouseLeave={() => setIsHover(false)}
       >
