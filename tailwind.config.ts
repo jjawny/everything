@@ -15,6 +15,15 @@ const config: Config = {
       fontFamily: {
         sedgwick: ['"Sedgwick Ave Display"', "cursive"],
       },
+      transitionProperty: {
+        "max-height": "max-height",
+      },
+      backgroundImage: {
+        "dot-matrix": "radial-gradient(circle, #dadada 1px, transparent 1px)",
+      },
+      backgroundSize: {
+        "dot-matrix": "30px 30px", // dot spacing
+      },
     },
   },
   plugins: [],
