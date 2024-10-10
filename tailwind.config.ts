@@ -17,6 +17,15 @@ const config: Config = {
       },
       backgroundImage: {
         "dot-matrix": "radial-gradient(circle, #dadada 1px, transparent 1px)",
+        "under-construction": `
+          repeating-linear-gradient(
+            45deg, 
+            #FFD700 0, 
+            #FFD700 10px, 
+            #ffc400 10px, 
+            #ffc400 20px
+          )
+        `,
       },
       backgroundSize: {
         "dot-matrix": "30px 30px", // dot spacing
