@@ -1,4 +1,4 @@
-import UnderConstructionHeader from "@/components/shared/UnderConstructionHeader";
+import RootHeader from "@/components/shared/RootHeader";
 import { ThemeProvider } from "@mui/material";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
@@ -33,7 +33,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider theme={theme}>
           <Toaster />
-          <UnderConstructionHeader />
+          <RootHeader />
           {children}
         </ThemeProvider>
       </body>
